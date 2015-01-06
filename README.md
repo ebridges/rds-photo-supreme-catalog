@@ -8,11 +8,12 @@ Creates an RDS instance for using as the catalog for Photo Supreme Server Editio
 * Python `psycopg2` module
 * [`ec2.py`](https://raw.githubusercontent.com/ansible/ansible/devel/plugins/inventory/ec2.py) dynamic inventory script
 * [`ec2.ini`](https://raw.githubusercontent.com/ansible/ansible/devel/plugins/inventory/ec2.ini) configuration for `ec2.py`
+* AWS Credentials
 
 ### Usage
 
 ```
-$ ansible-playbook -i ec2.py --verbose playbook.yml
+$ AWS_ACCESS_KEY_ID=<accessKey> AWS_SECRET_ACCESS_KEY=<secretKey> ansible-playbook -i ec2.py --verbose playbook.yml
 ```
 
 ### Description
