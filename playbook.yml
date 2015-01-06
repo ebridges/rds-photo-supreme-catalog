@@ -3,7 +3,7 @@
   vars:
     region: us-east-1
     instance_type: db.m1.small # db.m3.medium
-    source_cidr: 74.118.27.110/32
+    source_cidr: 0.0.0.0/0 # wide open
   vars_prompt:
     - name: "master_password"
       prompt: "Enter password for the instance's master username"
