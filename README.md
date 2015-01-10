@@ -22,7 +22,11 @@ Creates and configures a VPC to hold an RDS instance.
 
 ### Caveats
 
-* RDS instance is not marked as public (due to a [limitation in Ansible](https://github.com/ansible/ansible/pull/8834)).  Since AWS does not provide a way to change this property after the instance has been created it needs to be dropped and recreated.
+* RDS instance is not marked as public.  Since AWS does not provide a way to change this property after the instance has been created it needs to be dropped and recreated. More info:
+    * https://github.com/ebridges/rds-photo-supreme-catalog/issues/1
+    * https://groups.google.com/forum/#!topic/ansible-project/jPcfjXH0cc0
+    * https://github.com/ansible/ansible-modules-core/pull/5
+    * https://github.com/ansible/ansible/pull/8834
 * After running, an inbound rule needs to be created in the routing table for the VPC:
 | Destination | Target | Status | Propagated |
 |-------------|--------|--------|------------|
