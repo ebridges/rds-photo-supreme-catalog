@@ -27,7 +27,9 @@ Creates and configures a VPC to hold an RDS instance.
     * https://groups.google.com/forum/#!topic/ansible-project/jPcfjXH0cc0
     * https://github.com/ansible/ansible-modules-core/pull/5
     * https://github.com/ansible/ansible/pull/8834
+
 * After running, an inbound rule needs to be created in the routing table for the VPC:
-| Destination | Target | Status | Propagated |
-|-------------|--------|--------|------------|
-| 0.0.0.0/0   |  igw   | Active | No         |
+
+ | Destination | Target | Status | Propagated |
+ | ----------- | ------ | ------ | ---------- |
+ | 0.0.0.0/0   |  igw   | Active | No         |
