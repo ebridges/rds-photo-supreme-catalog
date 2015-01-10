@@ -20,6 +20,12 @@ $ AWS_ACCESS_KEY_ID=<accessKey> AWS_SECRET_ACCESS_KEY=<secretKey> ansible-playbo
 
 Creates and configures a VPC to hold an RDS instance.
 
+### To Do
+
+* Fix the issue (below) with RDS not being marked as publicly accessible. Without this, the script will only be able to set up the network for you only (which is still somewhat useful).
+* Include the [configuration tuning parameters](http://www.idimager.com/Trial/QuickInstall-PostgreSQL9-PhotoSupreme.pdf) as part of the setup.
+* Apply the schema creation scripts.
+
 ### Caveats
 
 * RDS instance is not marked as public.  Since AWS does not provide a way to change this property after the instance has been created it needs to be dropped and recreated. More info:
