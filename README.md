@@ -18,7 +18,7 @@ $ AWS_ACCESS_KEY_ID=<accessKey> AWS_SECRET_ACCESS_KEY=<secretKey> ansible-playbo
 
 ### Description
 
-Creates and configures a VPC to hold an RDS instance.
+Creates and configures a VPC to hold an RDS instance.  See [discussion on the forum](http://forum.idimager.com/viewtopic.php?f=57&t=23689&p=108409#p108409).
 
 ### To Do
 
