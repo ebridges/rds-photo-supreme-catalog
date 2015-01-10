@@ -3,7 +3,15 @@
   vars:
     region: us-east-1
     instance_type: db.m1.small # db.m3.medium
-    source_cidr: 0.0.0.0/0 # wide open
+    source_cidrs:
+#          - proto: tcp
+#            from_port: 5432
+#            to_port: 5432
+#            cidr_ip: "xxx.xxx.xxx.xxx/yy"
+          - proto: tcp
+            from_port: 5432
+            to_port: 5432
+            cidr_ip: "0.0.0.0/0" # wide open
   vars_prompt:
     - name: "master_password"
       prompt: "Enter password for the instance's master username"
@@ -29,26 +37,15 @@
         internet_gateway: yes
         dns_support: yes
         dns_hostnames: yes
-        route_tables:
-          - subnets:
-              - 10.0.0.0/24
-              - 10.0.1.0/24
-            routes:
-              - dest: 0.0.0.0/0
-                gw: igw
       register: vpc
 
     - name: create the vpc security group
       ec2_group:
-        name: photo-catalog-security-group
+        name: default
         description: 'Photo catalog security group'
         vpc_id: "{{ vpc.vpc_id }}"
         region: "{{ region }}"
-        rules:
-          - proto: tcp
-            from_port: 5432
-            to_port: 5432
-            cidr_ip: "{{ source_cidr }}"
+        rules: "{{ source_cidrs }}"
       register: sg
 
     - name: create the rds subnet group
@@ -65,6 +62,7 @@
         db_engine: postgres
         port: 5432
         size: 100
+        iops: 1000 # determines ssd vs. magnetic storage
         region: "{{ region }}"
         instance_type: "{{ instance_type }}"
         instance_name: photo-catalog
@@ -73,6 +71,7 @@
         db_name: photosupreme
         subnet: photo-catalog-subnet-group
         vpc_security_groups: "{{ sg.group_id }}"
+        publicly_accessible: yes
         upgrade: yes
         wait: yes
         wait_timeout: 3000 # 50 minutes
