@@ -56,6 +56,21 @@
         description: 'Photo catalog subnet group'
         subnets: "{{ vpc.subnets | map(attribute='id') | list}}"
 
+    # http://www.idimager.com/Trial/QuickInstall-PostgreSQL9-PhotoSupreme.pdf
+    # http://www.davidmkerr.com/2013/11/tune-your-postgres-rds-instance-via.html
+    - name: create a parameter group
+      rds_parameter_group:
+        state: present
+        name: photo-catalog-parameter-group
+        description: 'Parameters for Photo Supreme'
+        engine: postgres9.3
+        region: "{{ region }}"
+        params:
+          max_connections: 100
+          shared_buffers: '{DBInstanceClassMemory/32768}'
+          effective_cache_size: '{DBInstanceClassMemory*75/819200}'
+          work_mem: '{DBInstanceClassMemory/102400}' # max_connections * 1024 = 102400
+
     - name: create the photo catalog instance & database
       rds:
         command: create
@@ -71,6 +86,7 @@
         db_name: photosupreme
         subnet: photo-catalog-subnet-group
         vpc_security_groups: "{{ sg.group_id }}"
+        parameter_group: photo-catalog-parameter-group
         publicly_accessible: yes
         upgrade: yes
         wait: yes
