@@ -87,7 +87,7 @@
         subnet: photo-catalog-subnet-group
         vpc_security_groups: "{{ sg.group_id }}"
         parameter_group: photo-catalog-parameter-group
-        publicly_accessible: yes
+        #publicly_accessible: yes
         upgrade: yes
         wait: yes
         wait_timeout: 3000 # 50 minutes
