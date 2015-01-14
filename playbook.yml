@@ -59,7 +59,7 @@
     # http://www.idimager.com/Trial/QuickInstall-PostgreSQL9-PhotoSupreme.pdf
     # http://www.davidmkerr.com/2013/11/tune-your-postgres-rds-instance-via.html
     - name: create a parameter group
-      rds_parameter_group:
+      rds_param_group:
         state: present
         name: photo-catalog-parameter-group
         description: 'Parameters for Photo Supreme'
