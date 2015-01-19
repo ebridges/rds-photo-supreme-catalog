@@ -1,32 +1,34 @@
 ## RDS Catalog for Photo Supreme
 
-Creates an RDS instance for using as the catalog for Photo Supreme Server Edition (http://www.idimager.com/WP/?page_id=20)
+Creates and configures a VPC to hold an RDS instance & a functioning database for use as the catalog DB by Photo Supreme Server Edition (http://www.idimager.com/WP/?page_id=20).  See [discussion on the forum](http://forum.idimager.com/viewtopic.php?f=57&t=23689&p=108409#p108409).
 
 ### Prerequisites
 
 * Ansible 1.8.2
 * Python `psycopg2` module
-* [`ec2.py`](https://raw.githubusercontent.com/ansible/ansible/devel/plugins/inventory/ec2.py) dynamic inventory script
-* [`ec2.ini`](https://raw.githubusercontent.com/ansible/ansible/devel/plugins/inventory/ec2.ini) configuration for `ec2.py`
 * AWS Credentials
 
 ### Usage
 
 ```
-$ AWS_ACCESS_KEY_ID=<accessKey> AWS_SECRET_ACCESS_KEY=<secretKey> ansible-playbook -i ec2.py --verbose playbook.yml
+$ AWS_ACCESS_KEY_ID=<accessKey> AWS_SECRET_ACCESS_KEY=<secretKey> ansible-playbook -i hosts.ini --verbose playbook.yml
 ```
 
-### Description
+### Tuning Parameters
 
-Creates and configures a VPC to hold an RDS instance.  See [discussion on the forum](http://forum.idimager.com/viewtopic.php?f=57&t=23689&p=108409#p108409).
+| Parameter              | Recommended value/formula            |
+|------------------------|--------------------------------------|
+| `max_connections`      | 100                                  |
+| `shared_buffers`       | `{DBInstanceClassMemory/32768}`      |
+| `effective_cache_size` | `{DBInstanceClassMemory*75/819200}`  |
+| `work_mem`             | `{DBInstanceClassMemory/102400}` [1] | 
 
-### To Do
+* [Photo Supreme Installation Guide](http://www.idimager.com/Trial/QuickInstall-PostgreSQL9-PhotoSupreme.pdf)
+* [Guide to tuning a Postgres RDS Instance](http://www.davidmkerr.com/2013/11/tune-your-postgres-rds-instance-via.html)
 
-* Fix the issue (below) with RDS not being marked as publicly accessible. Without this, the script will only be able to set up the network for you only (which is still somewhat useful).
-* Include the [configuration tuning parameters](http://www.idimager.com/Trial/QuickInstall-PostgreSQL9-PhotoSupreme.pdf) as part of the setup.
-* Apply the schema creation scripts.
+Alternatively, you can use a tool like [RDSTune](https://bitbucket.org/davidkerr/rdstune).
 
-### Caveats
+### Bugs
 
 * RDS instance is not marked as public.  Since AWS does not provide a way to change this property after the instance has been created it needs to be dropped and recreated. More info:
     * https://github.com/ebridges/rds-photo-supreme-catalog/issues/1
@@ -39,3 +41,28 @@ Creates and configures a VPC to hold an RDS instance.  See [discussion on the fo
  | Destination | Target | Status | Propagated |
  | ----------- | ------ | ------ | ---------- |
  | 0.0.0.0/0   |  igw   | Active | No         |
+
+* The Ansible `rds_parameter_group` task currently is not succeeding in creating a parameter group, to tweak the database's parameters.  As a result these must be entered manually (or use RDSTune).
+
+## Creating the Schema
+
+After an instance & database have been created, the the Photo Supreme schema can be built.  This is done using the two scripts that accompany the distribution.
+
+```sh
+$ psql -W \
+    --host <DB HOSTNAME> \
+    --user idimager_main \
+    --file "<PATH TO PHOTO SUPREME INSTALLATION>/postgresql9_ididb.sql" \
+    photosupreme
+```
+
+And the thumbnail schema...
+```sh
+$ psql -W \
+    --host <DB HOSTNAME> \
+    --user idimager_main \
+    --file "<PATH TO PHOTO SUPREME INSTALLATION>/postgresql9_tmbdb.sql" \
+    photosupreme
+```
+
+[1]: max_connections * 1024 = 102400

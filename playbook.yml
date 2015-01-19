@@ -1,8 +1,9 @@
 ---
+# configurring hosts.ini: https://djaodjin.com/blog/deploying-on-ec2-with-ansible.blog.html
+
 - hosts: all
   vars:
     region: us-east-1
-    instance_type: db.m1.small # db.m3.medium
     source_cidrs:
 #          - proto: tcp
 #            from_port: 5432
@@ -12,6 +13,13 @@
             from_port: 5432
             to_port: 5432
             cidr_ip: "0.0.0.0/0" # wide open
+
+    instance_type: db.m1.small # db.m3.medium
+    max_connections: 100
+    shared_buffers: 55706 # '{DBInstanceClassMemory/32768}'
+    effective_cache_size: 167117 # '{DBInstanceClassMemory*75/819200}'
+    work_mem: 17826 # '{DBInstanceClassMemory/102400}' # max_connections * 1024 = 102400
+
   vars_prompt:
     - name: "master_password"
       prompt: "Enter password for the instance's master username"
@@ -56,47 +64,56 @@
         description: 'Photo catalog subnet group'
         subnets: "{{ vpc.subnets | map(attribute='id') | list}}"
 
-    # http://www.idimager.com/Trial/QuickInstall-PostgreSQL9-PhotoSupreme.pdf
-    # http://www.davidmkerr.com/2013/11/tune-your-postgres-rds-instance-via.html
-    - name: create a parameter group
-      rds_param_group:
-        state: present
-        name: photo-catalog-parameter-group
-        description: 'Parameters for Photo Supreme'
-        engine: postgres9.3
-        region: "{{ region }}"
-        params:
-          max_connections: 100
-          shared_buffers: '{DBInstanceClassMemory/32768}'
-          effective_cache_size: '{DBInstanceClassMemory*75/819200}'
-          work_mem: '{DBInstanceClassMemory/102400}' # max_connections * 1024 = 102400
+#    - name: create a parameter group
+#      rds_param_group:
+#        state: present
+#        name: photo-catalog-parameter-group
+#        description: 'Parameters for Photo Supreme'
+#        engine: postgres9.3
+#        region: "{{ region }}"
+#        params:
+#          max_connections: '{{ max_connections }}'
+#          shared_buffers: '{{ shared_buffers }}'
+#          effective_cache_size: '{{ effective_cache_size }}'
+#          work_mem: '{{ work_mem }}'
 
-    - name: create the photo catalog instance & database
-      rds:
-        command: create
-        db_engine: postgres
-        port: 5432
-        size: 100
-        iops: 1000 # determines ssd vs. magnetic storage
-        region: "{{ region }}"
-        instance_type: "{{ instance_type }}"
-        instance_name: photo-catalog
-        username: master_user
-        password: "{{ master_password }}"
-        db_name: photosupreme
-        subnet: photo-catalog-subnet-group
-        vpc_security_groups: "{{ sg.group_id }}"
-        parameter_group: photo-catalog-parameter-group
-        #publicly_accessible: yes
-        upgrade: yes
-        wait: yes
-        wait_timeout: 3000 # 50 minutes
-      register: rds
+#    - name: create the photo catalog instance & database
+#      rds:
+#        command: create
+#        db_engine: postgres
+#        port: 5432
+#        size: 100
+#        iops: 1000 # determines ssd vs. magnetic storage
+#        region: "{{ region }}"
+#        instance_type: "{{ instance_type }}"
+#        instance_name: photo-catalog
+#        username: master_user
+#        password: "{{ master_password }}"
+#        subnet: photo-catalog-subnet-group
+#        vpc_security_groups: "{{ sg.group_id }}"
+#        parameter_group: photo-catalog-parameter-group
+#        publicly_accessible: yes
+#        upgrade: yes
+#        wait: yes
+#        wait_timeout: 3000 # 50 minutes
+#      register: rds
+
+    - name: create photo supreme database
+      postgresql_db:
+        name: "photosupreme"
+        owner: "master_user"
+        encoding: "UTF-8"
+        login_host: "photo-catalog.cf3jqjy0lfne.us-east-1.rds.amazonaws.com"
+        login_user: "master_user"
+        login_password: "{{ master_password }}"
 
     - name: create photo supreme database user
       postgresql_user:
-        db=photosupreme
-        name=idimager_main
-        password="{{ admin_password }}"
-        role_attr_flags=CREATEDB,NOSUPERUSER
-        priv=ALL
+        db: "photosupreme"
+        name: "idimager_main"
+        password: "{{ admin_password }}"
+        role_attr_flags: "CREATEDB,NOSUPERUSER"
+        priv: "ALL"
+        login_host: "photo-catalog.cf3jqjy0lfne.us-east-1.rds.amazonaws.com"
+        login_user: "master_user"
+        login_password: "{{ master_password }}"
