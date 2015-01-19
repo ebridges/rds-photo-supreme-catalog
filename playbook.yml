@@ -103,7 +103,7 @@
         name: "photosupreme"
         owner: "master_user"
         encoding: "UTF-8"
-        login_host: "photo-catalog.cf3jqjy0lfne.us-east-1.rds.amazonaws.com"
+        login_host: xxx # enter host name
         login_user: "master_user"
         login_password: "{{ master_password }}"
 
@@ -114,6 +114,6 @@
         password: "{{ admin_password }}"
         role_attr_flags: "CREATEDB,NOSUPERUSER"
         priv: "ALL"
-        login_host: "photo-catalog.cf3jqjy0lfne.us-east-1.rds.amazonaws.com"
+        login_host: xxx # enter host name
         login_user: "master_user"
         login_password: "{{ master_password }}"
